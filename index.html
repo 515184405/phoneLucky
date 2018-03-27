@@ -47,44 +47,69 @@
 <!--js-->
 <script>
 
-	var u = 100;
-	var n = 1;
-	var timer; //定义滚动的定时器
-	var result   = 15321353313; //指定中奖结果,可以抽取指定数组中的某一个
-	var isBegin  = false; //标识能否开始抽奖
+	//抽奖逻辑
 
-	$(".num").css('backgroundPositionY',200);//开始13888888888
-	$(".num").eq(0).css('backgroundPositionY',-100)
-	$(".num").eq(1).css('backgroundPositionY',-300)
+	$.fn.phoneLucky = function(opts){
 
-	//执行数字滚动
-	function run(){
-		n++;
-		$(".num").each(function(index){
-			var _num = $(this);
-			_num.animate({
-				backgroundPositionY: ((u+1)*n*(index+1))
-			},100);
+		var _self = $(this);
 
-		});
-		timer = window.setTimeout(run,100);
-		isBegin = true ;
-	}
-	$(function(){
+		var opt = {
+			resultArrs : [],
+			result :"", //此为内定值，如果为空，那么结果就是resultArrs的随机值
+		}
+
+		var settings = $.extend({},opt,opts);
+
+		var u = 100;
+		var n = 1;
+		var timer; //定义滚动的定时器
+		var isBegin  = false; //标识能否开始抽奖
+		var resultData = '';
+		var M = {};
+
+		_self.css('backgroundPositionY',200);//开始13888888888
+		_self.eq(0).css('backgroundPositionY',-100)
+		_self.eq(1).css('backgroundPositionY',-300)
+
+		//执行数字滚动
+		function run(){
+			n++;
+			_self.each(function(index){
+				var _num = $(this);
+				_num.animate({
+					backgroundPositionY: ((u+1)*n*(index+1))
+				},100);
+
+			});
+			timer = window.setTimeout(run,100);
+			isBegin = true ;
+		}
 		//开始抽奖
-		$('.start').click(function(){
+		M.startFun = function(){
+			if(!settings.result && !(settings.resultArrs.length > 0)){
+				return alert('抽奖池已经没有数据了');
+			}
+
 			if(isBegin){
 				return false;
 			}else{
+				var reg = /^[1][3,4,5,7,8][0-9]{9}$/;
+				if(settings.result && reg.test(settings.result)){
+					resultData = settings.result;
+
+				}else{
+					resultData = settings.resultArrs[Math.floor(Math.random()*settings.resultArrs.length)];  //此处开启随机功能
+				}
 				run();
 			}
-		});
+		};
+
 		//停止抽奖
-		$('.stop').click(function(){
+		M.closeFun = function(){
 
-			var num_arr = (result+'').split('');
+			var num_arr = (resultData+'').split('');
 
-			$(".num").each(function(index){
+			_self.each(function(index){
 				var _num = $(this);
 				setTimeout(function(){
 					_num.animate({
@@ -102,8 +127,30 @@
 			});
 			window.clearTimeout(timer);
 			isBegin = false ;
-		});
-	});
+		};
+		return M;
+	}
+
+
+	//调用抽奖逻辑
+
+	var lucky = null;
+	$('.start').click(function(){
+		!!lucky || (function(){
+			//$.get('index.php',function(res){
+				lucky = $('.num-bg-box .num').phoneLucky({
+					resultArrs : [15321353313,18911534676,13301060502,15242924432,18842936785,14711551245,18915544586,15242925576,18988991452],
+					//result : 15321353313, //此为内定值，如果为空，那么结果就是resultArrs的随机值
+				})
+				lucky.startFun();
+			//})
+		})() 
+	})
+
+	$('.stop').click(function(){
+		!!lucky && lucky.closeFun();
+		lucky = null;
+	})
 </script>
 
 </body></html>
